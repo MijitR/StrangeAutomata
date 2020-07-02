@@ -1,11 +1,16 @@
 package MijitGroup.Workspace;
 
 import MijitGroup.Workspace.BoxPopper.BoxPopper;
+import MijitGroup.Workspace.Functions.VectorizeMe;
 import MijitGroup.Workspace.Math.Matrix;
-import MijitGroup.Workspace.Math.ORIENT_MAJOR;
+import MijitGroup.Workspace.Math.MAJOR;
 import MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation;
 import static MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation.*;
+import MijitGroup.Workspace.Networks.FullyConnected.NillerNet.BiasedMatrix;
 import MijitGroup.Workspace.Networks.FullyConnected.NillerNet.NillerNet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -28,6 +33,16 @@ public class Beginnings {
             new double[]{7,9,1}
         };
         
+        final List<Integer> indices = new ArrayList<>();
+        indices.add(0); indices.add(1); indices.add(2); indices.add(3);
+        Collections.shuffle(indices);
+        
+        new Matrix(MAJOR.ROW, dat).print();
+        VectorizeMe.mixRows(indices, dat);
+        new Matrix(MAJOR.ROW, dat).print();
+        System.out.println("BIASED");
+        new BiasedMatrix(new Matrix(MAJOR.ROW, dat)).print();
+        
         final double[][][] dats = new double[100][8][25];
         final double[][][] targets = new double[100][8][3];
         for(int in = 0; in < dats.length; in ++) {
@@ -41,12 +56,12 @@ public class Beginnings {
             }
         }
         
-        final int[] layerSizes = new int[]{25, 25, 3};
+        final int[] layerSizes = new int[]{2, 2, 3};
         final Activation[] activations = new Activation[]
-            {TANH, SOFTPLUS, TANH};
+        {ELU, ELU, TANH};
         final NillerNet network = new NillerNet(25, layerSizes, activations);
         
-        for(int i = 0; i < 50000; i ++) {
+        for(int i = 0; i < 350000; i ++) {
             final Matrix results = network.process(dats[i%dats.length]);
             
 
@@ -62,11 +77,14 @@ public class Beginnings {
         }
         
         System.out.println("Training Inputs:");
-        new Matrix(ORIENT_MAJOR.ROW, dats[10]).print();
+        new Matrix(MAJOR.ROW, dats[10]).print();
         System.out.println("RESULTS");
         network.process(dats[10]).print();
         System.out.println("TARGETS");
-        new Matrix(ORIENT_MAJOR.ROW, targets[10]).print();
+        new Matrix(MAJOR.ROW, targets[10]).print();
+        
+        System.out.println("BIASED");
+        new BiasedMatrix(new Matrix(MAJOR.ROW, targets[10])).print();
         
         
         double[][] test = new double[1][25];
@@ -76,14 +94,14 @@ public class Beginnings {
             }
         }
         System.out.println("Test Input:");
-        new Matrix(ORIENT_MAJOR.ROW, test).print();
+        new Matrix(MAJOR.ROW, test).print();
         System.out.println("Test Results:");
         network.process(test).print();
         
-        /*final Matrix rowMaj = new Matrix(ORIENT_MAJOR.ROW, dat);
+        /*final Matrix rowMaj = new Matrix(MAJOR.ROW, dat);
         rowMaj.print();
         System.out.println(rowMaj.instance(0));
-        final Matrix colMaj = new Matrix(ORIENT_MAJOR.COLUMN, dat);
+        final Matrix colMaj = new Matrix(MAJOR.COLUMN, dat);
         colMaj.print();
         System.out.println(colMaj.instance(0));*/
         //rowMaj.transpose().process(rowMaj).print();
@@ -100,17 +118,17 @@ public class Beginnings {
         }
         
         
-        //final Matrix rowMaj = new Matrix(ORIENT_MAJOR.ROW, dat);
-        //final Matrix colMaj = new Matrix(ORIENT_MAJOR.COLUMN, dat);
+        //final Matrix rowMaj = new Matrix(MAJOR.ROW, dat);
+        //final Matrix colMaj = new Matrix(MAJOR.COLUMN, dat);
        
         //rowMaj.print();
         //colMaj.print();
         
-        final Matrix rowMaj2 = new Matrix(ORIENT_MAJOR.ROW, dat2);
-        final Matrix colMaj2 = new Matrix(ORIENT_MAJOR.COLUMN, dat3);
+        final Matrix rowMaj2 = new Matrix(MAJOR.ROW, dat2);
+        final Matrix colMaj2 = new Matrix(MAJOR.COLUMN, dat3);
         
-        final Matrix rowMaj3 = new Matrix(ORIENT_MAJOR.ROW, 8, 4);
-        final Matrix colMaj3 = new Matrix(ORIENT_MAJOR.COLUMN, 4, 8);
+        final Matrix rowMaj3 = new Matrix(MAJOR.ROW, 8, 4);
+        final Matrix colMaj3 = new Matrix(MAJOR.COLUMN, 4, 8);
         
         rowMaj2.print();
         colMaj2.print();

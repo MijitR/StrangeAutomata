@@ -6,10 +6,11 @@
 package MijitGroup.Workspace;
 
 import MijitGroup.Workspace.Math.Matrix;
-import MijitGroup.Workspace.Math.ORIENT_MAJOR;
+import MijitGroup.Workspace.Math.MAJOR;
 import MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation;
 import static MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation.RELU;
 import static MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation.SHIFTSOFT;
+import static MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation.SIGMOID;
 import static MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation.SOFTPLUS;
 import static MijitGroup.Workspace.Networks.FullyConnected.NillerNet.Activation.TANH;
 import MijitGroup.Workspace.Networks.FullyConnected.NillerNet.NillerNet;
@@ -28,7 +29,7 @@ public class Middles {
     static {
         RAND = new Random();
         
-        NUM_INPUTS = 8;
+        NUM_INPUTS = 4;
     }
     
     public static final void main(final String[] args) {
@@ -41,7 +42,7 @@ public class Middles {
         
         final NillerNet myNet = new NillerNet(NUM_INPUTS, sizes, acts);
         
-        int miniBatchSize = 5, miniBatchCount = 1500;
+        int miniBatchSize = 50, miniBatchCount = 150;
         
         final double[][][] inputs = new double[miniBatchCount][miniBatchSize][NUM_INPUTS];
         final double[][][] targets = new double[miniBatchCount][miniBatchSize][4];
@@ -60,9 +61,9 @@ public class Middles {
         for(int epoc = 0; epoc < 300; epoc ++) {
             for(int b = 0; b < miniBatchCount; b ++) {
                 final Matrix result = myNet.process(inputs[b]);
-                if(b % 1499 == 0 && epoc % 5 == 0) {
+                if(b % 149 == 0 && epoc % 5 == 0) {
                     result.print();
-                    new Matrix(ORIENT_MAJOR.ROW, targets[b]).print();
+                    new Matrix(MAJOR.ROW, targets[b]).print();
                     System.out.println("\\\\\\\\\\\\");
                     System.out.println("\\\\\\\\\\\\");
                 }
@@ -78,9 +79,9 @@ public class Middles {
                 + "\\tsomething like tire pressure, the next column perhaps could be\n\t"
                 + "along the lines of ratio to maximum steering wheel size\n\nOf course, this example works slightly differently.\n");
         System.out.println("Read ObjXFeature as RowXCol");
-        new Matrix(ORIENT_MAJOR.ROW, tests).print();
+        new Matrix(MAJOR.ROW, tests).print();
         System.out.println("Target: (row x col => obj x feature");
-        //new Matrix(ORIENT_MAJOR.ROW, testAnswers).print();
+        //new Matrix(MAJOR.ROW, testAnswers).print();
         Middles.printChoices(testAnswers);
         
         System.out.println("Results per object queeried");

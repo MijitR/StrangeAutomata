@@ -5,6 +5,7 @@
  */
 package MijitGroup.Workspace.Math;
 
+import MijitGroup.Workspace.Functions.VectorizeMe;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -27,6 +28,14 @@ public final class Vector {
     }
     public Vector(final double[] dat) {
         this.dat = Arrays.copyOf(dat, dat.length);
+    }
+    public final Vector appendBias() {
+        final double[] newDat = Arrays.copyOf(dat, dat.length+1);
+        newDat[newDat.length - 1] = 1d;
+        return new Vector(newDat);
+    }
+    public final Vector deleteBias() {
+        return new Vector(Arrays.copyOf(dat, dat.length-1));
     }
     public int size() {
         return dat.length;
@@ -65,6 +74,17 @@ public final class Vector {
             dat[i] -= v.dat[i];
         }
     }
+    public void huberSubtract(final Vector v) {
+        double dif, alpha = 1;
+        for(int i = 0; i < Math.max(this.size(), v.size()); i ++) {
+            dif = Math.abs(dat[i] - v.dat[i]);
+            if(Double.compare(dif, alpha) > 0d) {
+                dat[i] = alpha * VectorizeMe.sign(dat[i]-v.dat[i]);
+            } else {
+                dat[i] -=v.dat[i];
+            }
+        }
+    }
     public void scale(final double scalar) {
         for(int i = 0; i < dat.length; i ++) {
             dat[i] *= scalar;
@@ -81,6 +101,29 @@ public final class Vector {
         for(int i = 0; i < Math.max(dat.length, v.size()); i ++) {
             dat[i] *= v.dat[i];
         }
+    }
+    public void clip(final double clip) {
+        for(int i = 0; i < dat.length; i ++) {
+            if(Math.abs(dat[i]) > clip) {
+                dat[i] = VectorizeMe.sign(dat[i]) * clip;
+            }
+        }
+    }
+    public Vector popClip(final double clip) {
+        final double[] newDat = dat.clone();
+        for(int i = 0; i < dat.length; i ++) {
+            if(Math.abs(newDat[i]) > clip) {
+                newDat[i] = VectorizeMe.sign(newDat[i]) * clip;
+            }
+        }
+        return new Vector(newDat);
+    }
+    public double sumSquared() {
+        double sum = 0d;
+        for(int i = 0; i < dat.length; i ++) {
+            sum += dat[i]*dat[i];
+        }
+        return sum;
     }
     public final double[] ripDat() {
         return dat.clone();

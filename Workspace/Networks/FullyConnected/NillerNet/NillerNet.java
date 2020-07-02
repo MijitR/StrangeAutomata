@@ -6,7 +6,7 @@
 package MijitGroup.Workspace.Networks.FullyConnected.NillerNet;
 
 import MijitGroup.Workspace.Math.Matrix;
-import MijitGroup.Workspace.Math.ORIENT_MAJOR;
+import MijitGroup.Workspace.Math.MAJOR;
 
 /**
  *
@@ -14,41 +14,85 @@ import MijitGroup.Workspace.Math.ORIENT_MAJOR;
  */
 public class NillerNet {
     
-    public static final int MINI_BATCH_SIZE, FEATURE_COUNT;
-    
-    static {
-        MINI_BATCH_SIZE = 1;
-        FEATURE_COUNT = 8;
-    }
-    
     private final Layer[] brain;
     
     private Matrix recentResults;
+    
+    private double recentError;
     
     public NillerNet(final int inputSize,
             final int[] layerSizes, final Activation[] activations)
     {
         brain = new Layer[Math.max(layerSizes.length, activations.length)];
         for(int i = 0; i < brain.length; i ++) {
-            brain[i] = new Layer(i==0?inputSize:layerSizes[i-1],
+            brain[i] = new Layer( (i == 0 ? inputSize:layerSizes[i-1]),
                 layerSizes[i], activations[i]);
             brain[i].initRand();
         }
+        recentError = Double.POSITIVE_INFINITY;
     }
     
     public final Matrix process(final double[][] inputBatch) {
-        Matrix flowMat = new Matrix(ORIENT_MAJOR.ROW, inputBatch);
+        Matrix flowMat = new Matrix(MAJOR.ROW, inputBatch);
         for(int l = 0; l < brain.length; l ++) {
-            flowMat = brain[l].transform(flowMat);
-        } return recentResults = flowMat;
+            flowMat = brain[l].transform(new BiasedMatrix(flowMat));
+        } return (recentResults = flowMat).clone();
     }
     
     public final Matrix trainInstant(final double[][] targets) {
-        recentResults.lose(new Matrix(ORIENT_MAJOR.ROW, targets));
+        if(recentResults == null) {
+            return null;
+        }
+        recentResults.huberLose(new Matrix(MAJOR.ROW, targets));
+        recentError = recentResults.sumSquared();
+        recentResults = new BiasedMatrix(recentResults);
         for(int l = brain.length - 1; l >= 0; l --) {
-            recentResults = brain[l].reform(recentResults);
+            recentResults = brain[l].reform(recentResults.trimColumn());
             brain[l].updateWithMomentum();
-        } return recentResults;
+        } return recentResults.trimColumn();
+    }
+    
+    public final Matrix train(final double[][] targets) {
+        if(recentResults == null) {
+            return null;
+        }
+        recentResults.huberLose(new Matrix(MAJOR.ROW, targets));
+        recentError = recentResults.sumSquared();
+        recentResults = new BiasedMatrix(recentResults);
+        for(int l = brain.length - 1; l >= 0; l --) {
+            recentResults = brain[l].reform(recentResults.trimColumn());
+        } return recentResults.trimColumn();
+    }
+    
+    public final void update() {
+        for(int l = 0; l < brain.length; l ++) {
+            brain[l].update();
+        }
+    }
+    
+    public final void updateWithMomentum() {
+        for(int l = 0; l < brain.length; l ++) {
+            brain[l].updateWithMomentum();
+        }
+    }
+    
+    public final double recentError() {
+        if(recentResults == null) {
+            return Double.NaN;
+        }
+        final double err = recentError / recentResults.vectorCount();
+        recentResults = null;
+        return err;
+    }
+    
+    public final double whatError(final double[][] targets) {
+        if(recentResults == null) {
+            return Double.NaN;
+        }
+        recentResults.lose(new Matrix(MAJOR.ROW, targets));
+        final double theoryError = recentResults.sumSquared() / recentResults.vectorCount();
+        recentResults = null;
+        return theoryError;
     }
     
 }
